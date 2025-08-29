@@ -1,71 +1,92 @@
 import edu.sharif.selab.models.EmailMessage;
 import edu.sharif.selab.models.Message;
 import edu.sharif.selab.models.SmsMessage;
-import edu.sharif.selab.services.EmailMessageService;
+import edu.sharif.selab.models.TelegramMessage;
 import edu.sharif.selab.services.MessageService;
-import edu.sharif.selab.services.SmsMessageService;
+import edu.sharif.selab.services.MessageServiceFactory;
 
 import java.util.Scanner;
 
 public class Main {
     public static final Scanner scanner = new Scanner(System.in);
+
     public static void main(String[] args) {
         System.out.println("Hello and Welcome to SE Lab Messenger.");
-        int userAnswer=0;
-        do{
-            Message message = null;
-            MessageService messageService;
-            String source;
-            String target;
-            String content;
+        int userAnswer;
 
+        do {
             System.out.println("In order to send Sms message enter 1");
             System.out.println("In order to send Email message enter 2");
+            System.out.println("In order to send Telegram message enter 3");
             System.out.println("In order to Exit, Enter 0");
 
-            userAnswer= scanner.nextInt();
+            userAnswer = scanner.nextInt();
+            scanner.nextLine(); // Consume newline
 
-            if(userAnswer==0){
+            if (userAnswer == 0) {
                 break;
             }
 
-            switch (userAnswer){
+            switch (userAnswer) {
                 case 1:
-                    SmsMessage smsMessage = new SmsMessage();
-                    System.out.print("Enter source phone : ");
-                    source = scanner.next();
-                    smsMessage.setSourcePhoneNumber(source);
-                    System.out.print("Enter target phone : ");
-                    target = scanner.next();
-                    smsMessage.setTargetPhoneNumber(target);
-                    System.out.println("Write Your Message : ");
-                    content = scanner.next(".*$");
-                    smsMessage.setContent(content);
-                    message = smsMessage;
+                    handleSmsMessage();
                     break;
                 case 2:
-                    EmailMessage emailMessage = new EmailMessage();
-                    System.out.print("Enter source phone : ");
-                    source = scanner.next();
-                    emailMessage.setSourceEmailAddress(source);
-                    System.out.print("Enter target phone : ");
-                    target = scanner.next();
-                    emailMessage.setTargetEmailAddress(target);
-                    System.out.println("Write Your Message : ");
-                    content = scanner.next();
-                    emailMessage.setContent(content);
-                    message = emailMessage;
+                    handleEmailMessage();
+                    break;
+                case 3:
+                    handleTelegramMessage();
                     break;
             }
 
-            if(message instanceof SmsMessage){
-                messageService = new SmsMessageService();
-                messageService.sendSmsMessage((SmsMessage) message);
-            }else if(message instanceof EmailMessage){
-                messageService = new EmailMessageService();
-                messageService.sendEmailMessage((EmailMessage) message);
-            }
+        } while (true);
+    }
 
-        }while (true);
+    private static void handleSmsMessage() {
+        SmsMessage smsMessage = new SmsMessage();
+        System.out.print("Enter source phone : ");
+        smsMessage.setSourcePhoneNumber(scanner.nextLine());
+        System.out.print("Enter target phone : ");
+        smsMessage.setTargetPhoneNumber(scanner.nextLine());
+        System.out.println("Write Your Message : ");
+        smsMessage.setContent(scanner.nextLine());
+
+        @SuppressWarnings("unchecked")
+        MessageService<SmsMessage> service = (MessageService<SmsMessage>) MessageServiceFactory.getMessageService("SMS");
+        if (service != null) {
+            service.sendMessage(smsMessage);
+        }
+    }
+
+    private static void handleEmailMessage() {
+        EmailMessage emailMessage = new EmailMessage();
+        System.out.print("Enter source email : ");
+        emailMessage.setSourceEmailAddress(scanner.nextLine());
+        System.out.print("Enter target email : ");
+        emailMessage.setTargetEmailAddress(scanner.nextLine());
+        System.out.println("Write Your Message : ");
+        emailMessage.setContent(scanner.nextLine());
+
+        @SuppressWarnings("unchecked")
+        MessageService<EmailMessage> service = (MessageService<EmailMessage>) MessageServiceFactory.getMessageService("EMAIL");
+        if (service != null) {
+            service.sendMessage(emailMessage);
+        }
+    }
+
+    private static void handleTelegramMessage() {
+        TelegramMessage telegramMessage = new TelegramMessage();
+        System.out.print("Enter source ID : ");
+        telegramMessage.setSourceId(scanner.nextLine());
+        System.out.print("Enter target ID : ");
+        telegramMessage.setTargetId(scanner.nextLine());
+        System.out.println("Write Your Message : ");
+        telegramMessage.setContent(scanner.nextLine());
+
+        @SuppressWarnings("unchecked")
+        MessageService<TelegramMessage> service = (MessageService<TelegramMessage>) MessageServiceFactory.getMessageService("TELEGRAM");
+        if (service != null) {
+            service.sendMessage(telegramMessage);
+        }
     }
 }
